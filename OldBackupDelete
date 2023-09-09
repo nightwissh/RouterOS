@@ -1,0 +1,37 @@
+#initialize global variables
+:global count 0
+:global oldestFname
+:global oldestDate 99999999
+
+#Get all local backups except primary out-of-factory backup
+:foreach i in=[/file find where type=backup and name!="backup/auto-before-reset.backup"]  do={
+    #Count how many backups were found
+    :set count ($count+1)
+
+    #Get name of currently checked backup file
+    :local fname [/file get number="$i" name]
+
+    #Get creation date of currently checked backup file and convert to number. Format: YYYYMMDD
+    :local BDate [/file get number="$i" creation-time]
+    :local BDay [:pick $BDate 8 10]
+    :local BMonth [:pick $BDate 5 7]
+    :local BYear [:pick $BDate 0 4]
+    :local BDateResult "$BYear$BMonth$BDay"
+    :local intDate [:tonum $BDateResult]
+
+    #Check if date of currently checked backup file is lower then stored in $oldestDate
+    #The goal here is to get file name of the oldest backup file
+    :if ( $intDate < $oldestDate) do={
+        :set oldestDate ($intDate)
+        :set oldestFname ($fname)
+    }
+}
+
+#Check if there is more then 30 backup files and delete oldest one using its file name
+:if ($count > 30 ) do={
+    :set count ($count -1)
+    :log info message= "removing oldest backup $count. Remaining backups $count"
+    /file remove $oldestFname
+} else={
+    :log info message= "No backups to remove. File count $count. Last backup: $oldestFname"
+    }

@@ -10,8 +10,8 @@
 	:local tmp [:pick $version $i]
 	:if ($tmp !=".") do={
 		:set numVersion "$numVersion$tmp"
-		}
 	}
+}
 :set numVersion [:tonum $numVersion]
 
 #Get current time and convert to HH-MM-SS

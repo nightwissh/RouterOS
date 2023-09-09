@@ -1,0 +1,38 @@
+#Backup Script compatible with ROS 7.11.2
+
+#get the device name
+:local ID ([/system identity get name])
+
+#Get the current OS version and convert it to numbers only
+:local version [/system package update get installed-version]
+:local numVersion
+:for i from=0 to=([:len $version]-1) do={
+	:local tmp [:pick $version $i]
+	:if ($tmp !=".") do={
+		:set numVersion "$numVersion$tmp"
+		}
+	}
+:set numVersion [:tonum $numVersion]
+
+#Get current time and convert to HH-MM-SS
+:local GTime [/system clock get time]
+:local GHour [ :pick $GTime 0 2 ]
+:local GMinute [ :pick $GTime 3 5 ]
+:local GSecond [ :pick $GTime 6 8 ]
+:local GTimeResult "$GHour-$GMinute-$GSecond"
+
+#Get the current date and convert it to DD-MM-YYYY
+:local GDate [/system clock get date]
+:local GDay [ :pick $GDate 8 10 ]
+:local GMonth [ :pick $GDate 5 7 ]
+:local GYear [ :pick $GDate 0 4 ]
+:local GDateResult "$GDay-$GMonth-$GYear"
+
+#Write a note to log the file
+:log info message= "backup started"
+:log info message= "$ID-Version_$numVersion_$GDateResult_$GTimeResult"
+#Execute backup with custom name containing device ID, OS Version, Current Date and Time
+#The usb1 is an external SSD drive connected via a USB port
+/system backup save name="/usb1/backup/$ID-Version_$numVersion_$GDateResult_$GTimeResult"
+#Write a note to log the file
+:log info message= "backup finished"
